@@ -1,0 +1,9 @@
+<resources>
+    <string name="app_name">Get It Done</string>
+    <string name="action_settings">Settings</string>
+    <string name="sample_item_todo">New Todo Item</string>
+    <string name="save_item">Save</string>
+    <string name="edit_list_item">Edit List Item:</string>
+    <string name="add_item">Add Item</string>
+    <string name="add_item_hint">New Todo Item</string>
+</resources>
