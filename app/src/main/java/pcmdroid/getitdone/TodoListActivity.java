@@ -16,6 +16,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.SimpleCursorAdapter;
+import android.widget.Toast;
 
 import pcmdroid.getitdone.data.DbContract;
 import pcmdroid.getitdone.data.TodoItem;
@@ -24,7 +25,6 @@ import pcmdroid.getitdone.data.TodoListDataSource;
 public class TodoListActivity extends AppCompatActivity implements View.OnClickListener {
 
     private static final String TAG = TodoListActivity.class.getSimpleName();
-    private static final String FILE_NAME = "todo.txt";
     static final int EDIT_ITEM_REQUEST = 1;
     static final String LIST_ITEM = "list_item";
     private static final String ITEM_DELETED = "Item Deleted";
@@ -62,8 +62,7 @@ public class TodoListActivity extends AppCompatActivity implements View.OnClickL
         lvItems.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
             @Override
             public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
-                TodoListDataSource.deleteTodoItem(id, TodoListActivity.this);
-                adapter.changeCursor(TodoListDataSource.queryAllTodoItemsGetCursor(TodoListActivity.this));
+                deleteTodoItem(id);
                 return true;
             }
         });
@@ -78,6 +77,12 @@ public class TodoListActivity extends AppCompatActivity implements View.OnClickL
                 startActivityForResult(intent, EDIT_ITEM_REQUEST);
             }
         });
+    }
+
+    private void deleteTodoItem(long id) {
+        TodoListDataSource.deleteTodoItem(id, TodoListActivity.this);
+        adapter.changeCursor(TodoListDataSource.queryAllTodoItemsGetCursor(TodoListActivity.this));
+        Toast.makeText(TodoListActivity.this, ITEM_DELETED, Toast.LENGTH_SHORT).show();
     }
 
     @Override
