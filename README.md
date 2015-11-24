@@ -23,8 +23,7 @@ The following **optional** features are implemented:
 
 Here's a walkthrough of implemented user stories:
 
-<img src='http://i.imgur.com/5ANaiYD.gif' title='Video Walkthrough' width='' alt='Video Walkthrough' />
-
+<img src='http://i.imgur.com/MIXAQHc.gif' title='Video Walkthrough' width='' alt='Video Walkthrough' />
 
 
 ## License
