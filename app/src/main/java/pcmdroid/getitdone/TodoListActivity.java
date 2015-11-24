@@ -1,6 +1,7 @@
 package pcmdroid.getitdone;
 
 import android.app.Activity;
+import android.app.DialogFragment;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
@@ -11,7 +12,6 @@ import android.view.View;
 import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
@@ -22,15 +22,14 @@ import pcmdroid.getitdone.data.DbContract;
 import pcmdroid.getitdone.data.TodoItem;
 import pcmdroid.getitdone.data.TodoListDataSource;
 
-public class TodoListActivity extends AppCompatActivity implements View.OnClickListener {
+public class TodoListActivity extends AppCompatActivity implements View.OnClickListener, EditDialogFragment.OnCompleteListener {
 
     private static final String TAG = TodoListActivity.class.getSimpleName();
     static final int EDIT_ITEM_REQUEST = 1;
     static final String LIST_ITEM = "list_item";
     private static final String ITEM_DELETED = "Item Deleted";
 
-    SimpleCursorAdapter adapter;
-    ArrayAdapter<String> todoItemsAdapter;
+    SimpleCursorAdapter todoItemsAdapter;
     ListView lvItems;
     EditText editText;
     long listItemInEdit;
@@ -46,14 +45,14 @@ public class TodoListActivity extends AppCompatActivity implements View.OnClickL
         editText = (EditText) findViewById(R.id.newItemEditText);
         editText.clearFocus();
 
-        adapter = new SimpleCursorAdapter(this,
+        todoItemsAdapter = new SimpleCursorAdapter(this,
                 android.R.layout.simple_list_item_1,
                 TodoListDataSource.queryAllTodoItemsGetCursor(this),
                 new String[]{DbContract.TodoItemTable.COLUMN_NAME_TODOITEM},
                 new int[]{android.R.id.text1});
 
         lvItems = (ListView) findViewById(R.id.listView);
-        lvItems.setAdapter(adapter);
+        lvItems.setAdapter(todoItemsAdapter);
         setUpListViewListeners();
 
     }
@@ -70,18 +69,16 @@ public class TodoListActivity extends AppCompatActivity implements View.OnClickL
         lvItems.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                Intent intent = new Intent(TodoListActivity.this, EditItemActivity.class);
                 TodoItem todoItem = TodoListDataSource.getTodoItem(position, TodoListActivity.this);
-                intent.putExtra(LIST_ITEM, todoItem.getTodoItem());
                 listItemInEdit = todoItem.getId();
-                startActivityForResult(intent, EDIT_ITEM_REQUEST);
+                showEditDialog(todoItem.getTodoItem());
             }
         });
     }
 
     private void deleteTodoItem(long id) {
         TodoListDataSource.deleteTodoItem(id, TodoListActivity.this);
-        adapter.changeCursor(TodoListDataSource.queryAllTodoItemsGetCursor(TodoListActivity.this));
+        todoItemsAdapter.changeCursor(TodoListDataSource.queryAllTodoItemsGetCursor(TodoListActivity.this));
         Toast.makeText(TodoListActivity.this, ITEM_DELETED, Toast.LENGTH_SHORT).show();
     }
 
@@ -112,7 +109,7 @@ public class TodoListActivity extends AppCompatActivity implements View.OnClickL
         if (view.getId() == R.id.addItemButton) {
             String newItem = editText.getText().toString();
             TodoListDataSource.insertNewTodoItem(newItem, this);
-            adapter.changeCursor(TodoListDataSource.queryAllTodoItemsGetCursor(this));
+            todoItemsAdapter.changeCursor(TodoListDataSource.queryAllTodoItemsGetCursor(this));
             editText.setText("");
             hideSoftKeyboard();
         }
@@ -132,11 +129,30 @@ public class TodoListActivity extends AppCompatActivity implements View.OnClickL
                 String listItem = data.getStringExtra(LIST_ITEM);
                 if (listItem == null) {
                     Log.e(TAG, "List item data is null");
+                    updateListItem(listItem);
                 }
-                TodoItem todoItem = new TodoItem(listItemInEdit, listItem);
-                TodoListDataSource.updateTodoItem(todoItem, this);
-                adapter.changeCursor(TodoListDataSource.queryAllTodoItemsGetCursor(this));
+
             }
         }
     }
+
+    private void updateListItem(String listItem) {
+        TodoItem todoItem = new TodoItem(listItemInEdit, listItem);
+        TodoListDataSource.updateTodoItem(todoItem, this);
+        todoItemsAdapter.changeCursor(TodoListDataSource.queryAllTodoItemsGetCursor(this));
+    }
+    private void showEditDialog(String listItem) {
+        Bundle bundle = new Bundle();
+        bundle.putString(EditDialogFragment.TODO_ITEM,listItem);
+        DialogFragment newFragment = new EditDialogFragment();
+        newFragment.setArguments(bundle);
+        newFragment.show(getFragmentManager(), "dialog");
+    }
+
+    @Override
+    public void onComplete(String listItem) {
+        updateListItem(listItem);
+    }
+
+
 }
